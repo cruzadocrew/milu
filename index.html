@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Práctico: Método booleano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=STIX+Two+Text:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFCFE; --ink:#1A2238; --muted:#5B6478; --rule:#DCE3EE;
+  --pen:#2F5DA8; --pen-tint:#EEF3FB; --nav:#1A2238; --nav-ink:#F2F5FA; --nav-muted:#AEB8CC;
+  --wire:#6B7488; --band:#EEF1F6; --card:#FFFFFF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  --navh:56px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#121826; --ink:#E6EAF2; --muted:#A3ADC2; --rule:#2A3346;
+    --pen:#8AB4F8; --pen-tint:#18233A; --nav:#0B1020; --nav-ink:#E6EAF2; --nav-muted:#8F9AB2;
+    --wire:#9AA4B8; --band:#1A2233; --card:#161E2E;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121826; --ink:#E6EAF2; --muted:#A3ADC2; --rule:#2A3346;
+  --pen:#8AB4F8; --pen-tint:#18233A; --nav:#0B1020; --nav-ink:#E6EAF2; --nav-muted:#8F9AB2;
+  --wire:#9AA4B8; --band:#1A2233; --card:#161E2E;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--navh) + 16px)}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Literata",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.65;
+  font-optical-sizing:auto;-webkit-text-size-adjust:100%}
+.f,svg text{font-family:"STIX Two Text","Cambria Math","Times New Roman",serif}
+.f{white-space:nowrap;font-size:1.04em}
+td.f{white-space:nowrap}
+td .f{white-space:normal}
+
+/* ---------- menú fijo ---------- */
+.topnav{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--nav);color:var(--nav-ink);
+  padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid rgba(255,255,255,.08)}
+.topnav .bar{max-width:62rem;margin:0 auto;height:var(--navh);display:flex;align-items:center;gap:1.25rem;padding:0 1.25rem}
+.brand{font-weight:700;font-size:15px;color:var(--nav-ink);text-decoration:none;white-space:nowrap;margin-right:auto}
+.brand span{color:var(--nav-muted);font-weight:400}
+.nav-list{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:.25rem}
+.nav-list>li>a,.nav-btn{display:flex;align-items:center;gap:.4rem;height:36px;padding:0 .75rem;border-radius:6px;
+  font:600 14.5px/1 "Literata",Georgia,serif;color:var(--nav-ink);background:none;border:0;cursor:pointer;text-decoration:none}
+.nav-list>li>a:hover,.nav-btn:hover,.nav-item.open .nav-btn{background:rgba(255,255,255,.1)}
+.nav-item{position:relative}
+.nav-item.current .nav-btn,.nav-list>li>a.current{box-shadow:inset 0 -2px 0 var(--nav-ink)}
+.chev{width:10px;height:6px;fill:none;stroke:currentColor;stroke-width:1.6;transition:transform .15s}
+.nav-item.open .chev{transform:rotate(180deg)}
+.dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:11rem;list-style:none;margin:0;padding:.35rem;
+  background:var(--card);color:var(--ink);border:1px solid var(--rule);border-radius:8px;box-shadow:0 8px 24px rgba(10,20,40,.18)}
+.nav-item.open .dropdown{display:block}
+@media (hover:hover){.nav-item:hover .dropdown{display:block}
+  .nav-item:hover .dropdown::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}}
+.dropdown li{margin:0}
+.nav-item:last-child .dropdown{left:auto;right:0}
+.nw{white-space:nowrap}
+.dropdown a{display:block;padding:.5rem .75rem;border-radius:6px;color:var(--ink);text-decoration:none;font-size:15px}
+.dropdown a:hover,.dropdown a:focus-visible{background:var(--pen-tint);color:var(--pen)}
+.menu-btn{display:none}
+.mobile-panel{display:none}
+:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+.topnav :focus-visible{outline-color:var(--nav-ink)}
+
+@media (max-width:760px){
+  .nav-list{display:none}
+  .menu-btn{display:flex;align-items:center;height:36px;padding:0 .9rem;border-radius:6px;border:1px solid rgba(255,255,255,.25);
+    background:none;color:var(--nav-ink);font:600 14.5px/1 "Literata",Georgia,serif;cursor:pointer}
+  .mobile-panel.open{display:block;max-height:calc(100vh - var(--navh) - env(safe-area-inset-top,0px));overflow-y:auto;
+    border-top:1px solid rgba(255,255,255,.1);padding:.5rem 1.25rem 1rem}
+  .mobile-panel ul{list-style:none;margin:0;padding:0}
+  .mobile-panel li{padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .mobile-panel a{color:var(--nav-ink);text-decoration:none;font-weight:600}
+  .m-part{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap}
+  .m-part span{color:var(--nav-muted);min-width:4.5rem}
+  .m-part a{font-weight:400;text-decoration:underline;text-underline-offset:3px}
+}
+
+/* ---------- contenido ---------- */
+main{max-width:46rem;margin:0 auto;padding:calc(var(--navh) + 2.5rem) 1.25rem 4rem}
+header.doc-head h1{font-size:2.35rem;line-height:1.15;margin:0 0 .6rem;letter-spacing:-.01em}
+.byline{color:var(--muted);margin:0}
+.source{margin:.2rem 0 0;color:var(--muted)}
+h2{font-size:1.65rem;line-height:1.25;margin:0 0 1.25rem}
+h3{font-size:1.15rem;margin:0 0 .75rem}
+h4{font-size:1.05rem;margin:2rem 0 .6rem}
+p{margin:0 0 1rem}
+ul,ol{margin:0 0 1rem;padding-left:1.4rem}
+li{margin-bottom:.4rem}
+a{color:var(--pen)}
+.lead{font-size:1.06rem}
+
+.index{margin-top:2.5rem;padding-top:2rem;border-top:1px solid var(--rule)}
+.part{margin-top:3.5rem;padding-top:2.5rem;border-top:3px double var(--rule)}
+td.go a{margin-right:.9rem;white-space:nowrap}
+
+.enunciado{background:var(--pen-tint);border-left:4px solid var(--pen);border-radius:0 8px 8px 0;padding:1.25rem 1.4rem .5rem;margin-bottom:2.25rem}
+.enunciado h3{color:var(--pen)}
+.enunciado blockquote{margin:0 0 1.25rem;padding:0}
+.enunciado blockquote p b{color:var(--pen)}
+.material{font-size:.95rem;margin-bottom:.6rem}
+.enunciado table{background:var(--card)}
+.respuesta h3{padding-bottom:.4rem;border-bottom:1px solid var(--rule)}
+
+.table-wrap{overflow-x:auto;margin:0 0 1.25rem;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.93rem;line-height:1.45}
+th,td{text-align:left;vertical-align:top;padding:.5rem .65rem;border-bottom:1px solid var(--rule)}
+th{font-weight:600;border-bottom:1.5px solid var(--ink)}
+
+.figure{margin:1rem 0 1.25rem;overflow-x:auto}
+.figure svg{display:block;width:100%;min-width:560px;height:auto}
+svg .wire{stroke:var(--wire);stroke-width:1.5;fill:none}
+svg .lever{stroke:var(--ink);stroke-width:2}
+svg .term{fill:var(--wire)}
+svg .term-open{fill:var(--paper);stroke:var(--wire);stroke-width:1.5}
+svg .lamp{fill:var(--paper);stroke:var(--wire);stroke-width:1.5}
+svg .band{fill:var(--band)}
+svg .rule{stroke:var(--rule)}
+svg text{fill:var(--ink)}
+svg .lbl{font-size:15px;font-weight:600}
+svg .name{font-size:15px;font-weight:600;font-family:"Literata",Georgia,serif}
+svg .note{font-size:13.5px;fill:var(--muted);font-family:"Literata",Georgia,serif}
+svg .branch{font-size:13.5px;fill:var(--muted);font-weight:600}
+
+.back{margin-top:2rem;font-size:.95rem}
+.back a{text-decoration:none}
+.back a:hover{text-decoration:underline}
+
+/* ---------- pantalla de contraseña ---------- */
+#clave{display:none}
+body.bloqueado .topnav,body.bloqueado main{display:none}
+body.bloqueado #clave{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:1.25rem}
+#clave form{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:1.75rem;width:100%;max-width:22rem;box-shadow:0 8px 24px rgba(10,20,40,.12)}
+#clave h1{font-size:1.3rem;margin:0 0 1rem}
+#clave input{width:100%;font:inherit;padding:.6rem .75rem;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);margin-bottom:.75rem}
+#clave button{width:100%;font:600 1rem "Literata",Georgia,serif;padding:.6rem;border:0;border-radius:6px;background:var(--pen);color:var(--paper);cursor:pointer}
+#clave .error{color:#C0392B;font-size:.9rem;margin:0 0 .75rem;min-height:1.2em}
+@media (max-width:560px){body{font-size:16px} header.doc-head h1{font-size:1.85rem} h2{font-size:1.4rem}}
+@media print{
+  .topnav,.back{display:none}
+  main{padding-top:0;max-width:none}
+  .part{break-before:page;border-top:0;margin-top:0}
+  .figure svg{min-width:0}
+}
+</style>
+</head>
+<body class="bloqueado">
+<div id="clave"><form id="form-clave">
+  <h1>Práctico: Método booleano</h1>
+  <label for="pw" class="material">Ingresa la contraseña para ver el contenido</label>
+  <input type="password" id="pw" autocomplete="off" autofocus>
+  <p class="error" id="pw-error" role="alert"></p>
+  <button type="submit">Entrar</button>
+</form></div>
+<nav class="topnav" aria-label="Navegación del práctico">
+  <div class="bar">
+    <a class="brand" href="#inicio">Práctico: Método booleano</a>
+    <ul class="nav-list">
+      <li><a href="#indice">Índice</a></li>
+      
+<li class="nav-item" data-part="1">
+  <button class="nav-btn" type="button" aria-expanded="false" aria-controls="dd-1">Parte 1<svg class="chev" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+  <ul class="dropdown" id="dd-1">
+    <li><a href="#p1-enunciado">Enunciado</a></li>
+    <li><a href="#p1-respuesta">Respuesta</a></li>
+  </ul>
+</li>
+<li class="nav-item" data-part="2">
+  <button class="nav-btn" type="button" aria-expanded="false" aria-controls="dd-2">Parte 2<svg class="chev" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+  <ul class="dropdown" id="dd-2">
+    <li><a href="#p2-enunciado">Enunciado</a></li>
+    <li><a href="#p2-respuesta">Respuesta</a></li>
+  </ul>
+</li>
+<li class="nav-item" data-part="3">
+  <button class="nav-btn" type="button" aria-expanded="false" aria-controls="dd-3">Parte 3<svg class="chev" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+  <ul class="dropdown" id="dd-3">
+    <li><a href="#p3-enunciado">Enunciado</a></li>
+    <li><a href="#p3-respuesta">Respuesta</a></li>
+  </ul>
+</li>
+<li class="nav-item" data-part="4">
+  <button class="nav-btn" type="button" aria-expanded="false" aria-controls="dd-4">Parte 4<svg class="chev" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+  <ul class="dropdown" id="dd-4">
+    <li><a href="#p4-enunciado">Enunciado</a></li>
+    <li><a href="#p4-respuesta">Respuesta</a></li>
+  </ul>
+</li>
+    </ul>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-panel">Menú</button>
+  </div>
+  <div class="mobile-panel" id="mobile-panel"><ul><li><a href="#indice">Índice</a></li><li class="m-part"><span>Parte 1</span><a href="#p1-enunciado">Enunciado</a><a href="#p1-respuesta">Respuesta</a></li><li class="m-part"><span>Parte 2</span><a href="#p2-enunciado">Enunciado</a><a href="#p2-respuesta">Respuesta</a></li><li class="m-part"><span>Parte 3</span><a href="#p3-enunciado">Enunciado</a><a href="#p3-respuesta">Respuesta</a></li><li class="m-part"><span>Parte 4</span><a href="#p4-enunciado">Enunciado</a><a href="#p4-respuesta">Respuesta</a></li></ul></div>
+</nav>
+
+<main id="inicio">
+<header class="doc-head">
+  <h1>Práctico: Método booleano</h1>
+  <p class="byline">5 de octubre de 2026</p>
+  <p class="source">Basado en el Cap. XVIII «Métodos booleanos», <i>Lógica simbólica</i>, pp. 392–409.</p>
+</header>
+
+<section class="index" id="indice">
+  <h2>Índice</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Parte</th><th scope="col">Tema</th><th scope="col">Libro</th><th scope="col">PDF</th><th scope="col">Ir a</th></tr></thead>
+    <tbody><tr><td>1</td><td>Filosofía de la lógica y la mente</td><td class="nw">p. 392</td><td class="nw">pág. 1</td><td class="go"><a href="#p1-enunciado">Enunciado</a> <a href="#p1-respuesta">Respuesta</a></td></tr><tr><td>2</td><td>Algoritmos de decisión mediante formas normales</td><td class="nw">pp. 393–399</td><td class="nw">págs. 1–4</td><td class="go"><a href="#p2-enunciado">Enunciado</a> <a href="#p2-respuesta">Respuesta</a></td></tr><tr><td>3</td><td>El principio de dualidad</td><td class="nw">pp. 400–402</td><td class="nw">págs. 5–6</td><td class="go"><a href="#p3-enunciado">Enunciado</a> <a href="#p3-respuesta">Respuesta</a></td></tr><tr><td>4</td><td>Aplicación didáctica en la lógica de circuitos</td><td class="nw">pp. 402–408</td><td class="nw">págs. 6–9</td><td class="go"><a href="#p4-enunciado">Enunciado</a> <a href="#p4-respuesta">Respuesta</a></td></tr></tbody>
+  </table></div>
+  <p class="material">El PDF tiene 9 páginas y cada una es el escaneo de dos páginas del libro: PDF pág. 1 = pp. 392–393, pág. 2 = pp. 394–395, y así hasta pág. 9 = pp. 408–409.</p>
+</section>
+
+<section class="part" id="parte-1" data-part="1">
+<h2>Parte 1: Filosofía de la lógica y la mente</h2>
+
+<div class="enunciado" id="p1-enunciado">
+<h3>Enunciado</h3>
+<blockquote>
+<p>El cálculo lógico ha impulsado tanto el desarrollo de la informática como el debate epistemológico sobre el conocimiento humano.</p>
+<p><b>1.1</b> Analice el «juego de imitación» propuesto por Turing, donde un interrogador intenta descubrir mediante mensajes mecanografiados si su interlocutor es un humano o una máquina.</p>
+<p><b>1.2</b> Relacione este juego con la «metáfora del computador», la cual sugiere que una máquina puede servir como modelo explicativo de la mente humana.</p>
+<p><b>1.3</b> Debate en clase: Turing estableció una analogía indicando que la inteligencia humana viene al mundo como pura capacidad de conocer y necesita el complemento de la educación y el adiestramiento. ¿Qué implicancias pedagógicas tiene esta afirmación para el rol del docente frente al desarrollo de la inteligencia artificial?</p>
+</blockquote>
+<p class="material"><b>Material de lectura:</b> p. 392 del libro, PDF pág. 1 (página izquierda). Es el cierre del capítulo XVII, incluido al inicio del escaneo; el comienzo de ese apartado (p. 391) no está en el PDF.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Consigna</th><th scope="col">Contenido</th><th scope="col">Libro</th><th scope="col">PDF</th></tr></thead><tbody><tr><td>1.1</td><td>Juego de imitación</td><td>p. 392, 2.º párrafo</td><td>pág. 1</td></tr><tr><td>1.2</td><td>Metáfora del computador y funcionalismo de Putnam</td><td>p. 392, 3.<sup>er</sup> párrafo</td><td>pág. 1</td></tr><tr><td>1.3</td><td>Analogía de la educación y el adiestramiento</td><td>p. 392, 1.<sup>er</sup> párrafo</td><td>pág. 1</td></tr></tbody></table></div>
+</div>
+
+<div class="respuesta" id="p1-respuesta">
+<h3>Respuesta</h3>
+<p class="lead">El juego de imitación propone un criterio de conducta para la inteligencia; la metáfora del computador lo convierte en una teoría sobre cómo funciona la mente.</p>
+
+<h4>1.1 Análisis del juego de imitación</h4>
+<ul>
+<li><b>Planteamiento:</b> un interrogador se comunica por mensajes mecanografiados con dos personas que no ve (un hombre y una mujer) y debe descubrir quién es quién; las respuestas pueden incluir mentiras.</li>
+<li><b>Variante de Turing:</b> se reemplaza a una de esas personas por un computador bien programado. Si el interrogador no advierte que habla con una máquina, esta habría demostrado su capacidad de simular la inteligencia humana.</li>
+<li><b>Supuesto de fondo:</b> si una máquina puede calcular, con números o con palabras, puede hacer todo lo que hace la mente. Es una nueva versión de la tesis que identifica conocimiento con cálculo.</li>
+<li><b>Valoración:</b> el criterio es externo: solo juzga las respuestas, no lo que ocurre «dentro». Su ventaja es que evita definir qué es «pensar»; su límite es que simular no equivale necesariamente a comprender, como objetan críticos como Searle (manipular símbolos no garantiza captar su significado) y Penrose.</li>
+</ul>
+
+<h4>1.2 Relación con la metáfora del computador</h4>
+<div class="table-wrap"><table><thead><tr><th scope="col"></th><th scope="col">Juego de imitación (Turing)</th><th scope="col">Metáfora del computador (Putnam, funcionalismo)</th></tr></thead><tbody><tr><td><b>Pregunta</b></td><td>¿Puede una máquina pasar por humana?</td><td>¿Puede una máquina explicar cómo funciona la mente?</td></tr><tr><td><b>Qué observa</b></td><td>Solo la conducta (respuestas)</td><td>Entradas, estados internos y salidas</td></tr><tr><td><b>Tesis</b></td><td>Si no se la distingue, la máquina simula la inteligencia</td><td>La mente funciona como un programa que procesa información</td></tr><tr><td><b>Herencia</b></td><td>Inteligencia artificial</td><td>Inteligencia artificial y psicología cognitiva</td></tr></tbody></table></div>
+<p>El juego es el punto de partida: si una máquina reproduce la conducta inteligente, es razonable usarla como <b>modelo explicativo de la mente</b>. Putnam prolonga la idea: así como un computador no se explica solo por sus <i>inputs</i> sino también por sus estados internos, el ser humano no se explica solo por los estímulos externos, como pretendían los conductistas, sino también por sus estados anímicos internos.</p>
+<p>Hay una tensión interesante: el test de Turing es conductista (solo mira respuestas), mientras que la metáfora del computador es anticonductista (exige estados internos).</p>
+
+<h4>1.3 Debate: implicancias pedagógicas</h4>
+<p>Turing compara la programación de la máquina con la mente humana, que nace como pura capacidad de conocer y necesita educación y adiestramiento para ejercer sus funciones. Para el rol docente frente a la IA, esto implica:</p>
+<ol>
+<li><b>La inteligencia se desarrolla, no viene dada.</b> La capacidad sin educación no rinde, por lo que el docente sigue siendo imprescindible: transforma capacidad en competencia.</li>
+<li><b>De transmitir a formar criterio.</b> Si la IA ya entrega información y respuestas, el docente debe enseñar a preguntar, verificar y argumentar, igual que el interrogador del juego, que distingue a fuerza de buenas preguntas.</li>
+<li><b>Educar no es programar.</b> La analogía tiene límites: programar fija instrucciones, educar busca autonomía, comprensión y valores. Una enseñanza basada solo en repetición y respuestas correctas reduce al alumno a una máquina.</li>
+<li><b>Educar en y sobre la IA.</b> El docente enseña a usar la IA como herramienta, con honestidad académica y atención a sus errores y sesgos. Además, la IA también «aprende» de lo que producen los humanos, así que la calidad de lo que enseñamos repercute en ella.</li>
+</ol>
+<p><b>Preguntas para abrir el debate:</b></p>
+<ul>
+<li>Si una IA aprueba el juego de imitación, ¿puede enseñar? ¿Puede educar?</li>
+<li>¿Qué parte del trabajo docente es «adiestramiento» que una máquina podría hacer, y qué parte no?</li>
+<li>¿Evaluamos a los estudiantes como el interrogador evalúa a la máquina, solo por sus respuestas?</li>
+</ul>
+</div>
+<p class="back"><a href="#indice">↑ Volver al índice</a></p>
+</section>
+
+<section class="part" id="parte-2" data-part="2">
+<h2>Parte 2: Algoritmos de decisión mediante formas normales</h2>
+
+<div class="enunciado" id="p2-enunciado">
+<h3>Enunciado</h3>
+<blockquote>
+<p>La reducción a formas normales permite decidir mecánicamente si una fórmula es tautología o contradicción prescindiendo de los gráficos de las tablas de verdad. Este proceso consta de cuatro pasos principales: reducción de constantes lógicas, normalización del negador, exteriorización del conjuntor o disyuntor, y simplificación.</p>
+<p><b>2.1</b> Dada la fórmula <span class="f">A ⇌ ¬(p ↔ q)</span>, ejecute los primeros pasos algorítmicos:</p>
+<ul>
+<li>Elimine los coimplicadores utilizando la ley que los define en términos de implicación y conjunción.</li>
+<li>Normalice los negadores introduciéndolos dentro de los paréntesis con las leyes de De Morgan y reduciendo las dobles negaciones.</li>
+<li>Finalice la reducción aplicando la ley distributiva para exteriorizar los disyuntores y obtener así la Forma Normal Conjuntiva (FNC), cuya estructura consiste en una conjunción de disyunciones elementales.</li>
+</ul>
+<p><b>2.2</b> Evalúe el resultado de sus alumnos: establezca que una FNC es tautológica únicamente si en cada una de sus disyunciones elementales aparece una misma fórmula atómica afirmada y negada. Utilice esta regla para justificar si la fórmula original es o no una tautología.</p>
+</blockquote>
+<p class="material"><b>Material de lectura:</b> Cap. XVIII § 2 «Formas normales conjuntiva y disyuntiva», pp. 393–399 (PDF págs. 1–4).</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Consigna</th><th scope="col">Contenido</th><th scope="col">Libro</th><th scope="col">PDF</th></tr></thead><tbody><tr><td>—</td><td>Definición de FNC</td><td>p. 394</td><td>pág. 2</td></tr><tr><td>2.1</td><td>Paso 1: eliminar ↔ y →</td><td>pp. 395–396</td><td>págs. 2–3</td></tr><tr><td>2.1</td><td>Paso 2: De Morgan y doble negación</td><td>p. 396</td><td>pág. 3</td></tr><tr><td>2.1</td><td>Paso 3: ley distributiva</td><td>p. 397</td><td>pág. 3</td></tr><tr><td>2.1</td><td>Ejercicio 1.º resuelto con esta misma fórmula</td><td>p. 399</td><td>pág. 4</td></tr><tr><td>2.2</td><td>Regla: cuándo una FNC es tautológica</td><td>pp. 398–399</td><td>pág. 4</td></tr></tbody></table></div>
+</div>
+
+<div class="respuesta" id="p2-respuesta">
+<h3>Respuesta</h3>
+<p class="lead">La FNC de A es <span class="f">(p ∨ q) ∧ (p ∨ ¬p) ∧ (q ∨ ¬q) ∧ (¬p ∨ ¬q)</span>, y por la regla de la FNC <b>A no es tautología</b>.</p>
+
+<h4>2.1 Desarrollo paso a paso</h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Nº</th><th scope="col">Fórmula</th><th scope="col">Ley aplicada</th><th scope="col">Paso del algoritmo</th></tr></thead><tbody><tr><td>0</td><td class="f">¬(p ↔ q)</td><td>Fórmula original</td><td>—</td></tr><tr><td>1</td><td class="f">¬((p → q) ∧ (q → p))</td><td><span class="f">Definición del coimplicador: (A ↔ B) ↔ (A → B) ∧ (B → A)</span></td><td>1.º Reducción de constantes</td></tr><tr><td>2</td><td class="f">¬((¬p ∨ q) ∧ (¬q ∨ p))</td><td><span class="f">Definición del implicador: (A → B) ↔ ¬A ∨ B</span></td><td>1.º Reducción de constantes</td></tr><tr><td>3</td><td class="f">¬(¬p ∨ q) ∨ ¬(¬q ∨ p)</td><td><span class="f">De Morgan: ¬(A ∧ B) ↔ ¬A ∨ ¬B</span></td><td>2.º Normalización del negador</td></tr><tr><td>4</td><td class="f">(¬¬p ∧ ¬q) ∨ (¬¬q ∧ ¬p)</td><td><span class="f">De Morgan: ¬(A ∨ B) ↔ ¬A ∧ ¬B</span></td><td>2.º Normalización del negador</td></tr><tr><td>5</td><td class="f">(p ∧ ¬q) ∨ (q ∧ ¬p)</td><td><span class="f">Doble negación: ¬¬A ↔ A</span></td><td>2.º Normalización del negador</td></tr><tr><td>6</td><td class="f">(p ∨ (q ∧ ¬p)) ∧ (¬q ∨ (q ∧ ¬p))</td><td><span class="f">Distributiva: (A ∧ B) ∨ C ↔ (A ∨ C) ∧ (B ∨ C)</span></td><td>3.º Exteriorización del conjuntor</td></tr><tr><td>7</td><td class="f">(p ∨ q) ∧ (p ∨ ¬p) ∧ (¬q ∨ q) ∧ (¬q ∨ ¬p)</td><td><span class="f">Distributiva: A ∨ (B ∧ C) ↔ (A ∨ B) ∧ (A ∨ C)</span></td><td>3.º Exteriorización del conjuntor</td></tr><tr><td>8</td><td class="f">(p ∨ q) ∧ (p ∨ ¬p) ∧ (q ∨ ¬q) ∧ (¬p ∨ ¬q)</td><td>Conmutativa (ordenación alfabética)</td><td>4.º Simplificación y ordenación</td></tr></tbody></table></div>
+<p>En el paso 6 se toma la fórmula 5 como <span class="f">X ∨ Y</span>, con <span class="f">X = p ∧ ¬q</span> e <span class="f">Y = q ∧ ¬p</span>, y se distribuye Y sobre los dos miembros de X. En el paso 7 se repite la distribución dentro de cada paréntesis.</p>
+
+<h4>2.2 Evaluación con la regla de la FNC</h4>
+<p>Una FNC es tautológica solo si <b>cada</b> disyunción elemental contiene una misma fórmula atómica afirmada y negada (pues entonces es una instancia de <span class="f">A ∨ ¬A</span>).</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Disyunción elemental</th><th scope="col">¿Tiene un átomo afirmado y negado?</th></tr></thead><tbody><tr><td><span class="f">D1: p ∨ q</span></td><td>No</td></tr><tr><td><span class="f">D2: p ∨ ¬p</span></td><td>Sí (p)</td></tr><tr><td><span class="f">D3: q ∨ ¬q</span></td><td>Sí (q)</td></tr><tr><td><span class="f">D4: ¬p ∨ ¬q</span></td><td>No</td></tr></tbody></table></div>
+<p><b>Conclusión:</b> D1 y D4 no cumplen la condición, así que A no es tautología. Contraejemplo: con p = V y q = V, D4 es falsa y toda la FNC es falsa (y en efecto <span class="f">¬(V ↔ V)</span> es F).</p>
+<p>Tampoco es contradicción: con p = V y q = F todas las disyunciones son verdaderas. A es una fórmula <b>contingente</b>. Como D2 y D3 son siempre verdaderas, la FNC se simplifica a <span class="f">(p ∨ q) ∧ (¬p ∨ ¬q)</span>, que es la disyunción exclusiva: «p o q, pero no ambas».</p>
+</div>
+<p class="back"><a href="#indice">↑ Volver al índice</a></p>
+</section>
+
+<section class="part" id="parte-3" data-part="3">
+<h2>Parte 3: El principio de dualidad</h2>
+
+<div class="enunciado" id="p3-enunciado">
+<h3>Enunciado</h3>
+<blockquote>
+<p>La dualización es un procedimiento algebraico que agiliza las demostraciones teóricas. Para obtener la fórmula dual, se deben cambiar todas las ocurrencias del conjuntor por el disyuntor y viceversa, respetando siempre las posiciones de los negadores.</p>
+<p><b>3.1</b> Calcule en la pizarra la fórmula dual de la expresión (pq)p.</p>
+<p><b>3.2</b> Aplique el principio especial de dualidad para equivalencias, el cual demuestra que si dos fórmulas son tautológicamente equivalentes, entonces sus respectivas duales también lo son.</p>
+<p><b>3.3</b> Pida a los estudiantes que expliquen cómo este principio permite enseñar las leyes distributivas o asociativas memorizando solo la mitad de las fórmulas.</p>
+</blockquote>
+<p class="material"><b>Material de lectura:</b> Cap. XVIII § 3 «Dualidad», pp. 400–402 (PDF págs. 5–6).</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Consigna</th><th scope="col">Contenido</th><th scope="col">Libro</th><th scope="col">PDF</th></tr></thead><tbody><tr><td>3.1</td><td>Definición de fórmula dual y ejemplos</td><td>p. 400</td><td>pág. 5</td></tr><tr><td>3.2</td><td>Principio especial de dualidad para equivalencias</td><td>p. 401</td><td>pág. 5</td></tr><tr><td>3.3</td><td>Leyes que son duales entre sí (conmutativa, asociativa, distributiva…)</td><td>p. 402</td><td>pág. 6</td></tr></tbody></table></div>
+</div>
+
+<div class="respuesta" id="p3-respuesta">
+<h3>Respuesta</h3>
+<p class="lead">La dual de <span class="f">(p ∧ q) ∨ p</span> es <span class="f">(p ∨ q) ∧ p</span>, y ambas son equivalentes a p: un caso directo del principio de dualidad para equivalencias.</p>
+
+<h4>3.1 Cálculo de la dual</h4>
+<p>En el enunciado de la tarea se perdieron los conectores de «(pq)p»; se asume la fórmula <b><span class="f">(p ∧ q) ∨ p</span></b>. Regla: la fórmula debe estar escrita solo con ¬, ∧ y ∨; luego se cambia cada ∧ por ∨ y cada ∨ por ∧, sin mover los negadores.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col"></th><th scope="col">Fórmula</th></tr></thead><tbody><tr><td>Original A</td><td><span class="f">(p <b>∧</b> q) <b>∨</b> p</span></td></tr><tr><td>Dual A′</td><td><span class="f">(p <b>∨</b> q) <b>∧</b> p</span></td></tr></tbody></table></div>
+<p>La dualización es recíproca: la dual de A′ vuelve a ser A. Por eso, si el enunciado original era <span class="f">(p ∨ q) ∧ p</span>, su dual es <span class="f">(p ∧ q) ∨ p</span> y el análisis es el mismo.</p>
+
+<h4>3.2 Principio especial de dualidad para equivalencias</h4>
+<p><b>Principio:</b> si <span class="f">A ↔ B</span> es tautología, entonces <span class="f">A′ ↔ B′</span> también lo es.</p>
+<ol>
+<li>Se sabe que <span class="f">(p ∧ q) ∨ p ↔ p</span> es tautología (ley de absorción).</li>
+<li>La dual de p es p misma (no tiene conectores que cambiar).</li>
+<li>Por el principio, <span class="f">(p ∨ q) ∧ p ↔ p</span> también es tautología, sin necesidad de demostrarla aparte.</li>
+</ol>
+<p>Comprobación rápida: si p = V, <span class="f">(p ∨ q) ∧ p</span> es V; si p = F, es F. Siempre coincide con p.</p>
+<p><b>Advertencia para la clase:</b> dualizar no conserva el valor de verdad de una fórmula aislada. <span class="f">p ∨ ¬p</span> es tautología, pero su dual <span class="f">p ∧ ¬p</span> es contradicción. Lo que se conserva es la <b>equivalencia</b> entre dos fórmulas.</p>
+
+<h4>3.3 Memorizar solo la mitad de las leyes</h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Ley</th><th scope="col">Se aprende y demuestra</th><th scope="col">Su dual (se obtiene gratis)</th></tr></thead><tbody><tr><td>Conmutativa</td><td class="f">A ∧ B ↔ B ∧ A</td><td class="f">A ∨ B ↔ B ∨ A</td></tr><tr><td>Asociativa</td><td class="f">A ∧ (B ∧ C) ↔ (A ∧ B) ∧ C</td><td class="f">A ∨ (B ∨ C) ↔ (A ∨ B) ∨ C</td></tr><tr><td>Distributiva</td><td class="f">A ∧ (B ∨ C) ↔ (A ∧ B) ∨ (A ∧ C)</td><td class="f">A ∨ (B ∧ C) ↔ (A ∨ B) ∧ (A ∨ C)</td></tr><tr><td>Idempotencia</td><td class="f">A ∧ A ↔ A</td><td class="f">A ∨ A ↔ A</td></tr><tr><td>Absorción</td><td class="f">A ∧ (A ∨ B) ↔ A</td><td class="f">A ∨ (A ∧ B) ↔ A</td></tr><tr><td>De Morgan</td><td class="f">¬(A ∧ B) ↔ ¬A ∨ ¬B</td><td class="f">¬(A ∨ B) ↔ ¬A ∧ ¬B</td></tr></tbody></table></div>
+<p><b>Explicación esperada de los estudiantes:</b> las leyes vienen en pares duales. Basta aprender y demostrar una columna; la otra se obtiene intercambiando ∧ y ∨, y el principio garantiza que sigue siendo una equivalencia válida. Así se reduce a la mitad lo que hay que memorizar y demostrar.</p>
+<p>Ejemplo didáctico: la distributiva del ∧ sobre el ∨ es intuitiva porque se parece a la aritmética, <span class="f">a·(b + c) = a·b + a·c</span>. Su dual, la del ∨ sobre el ∧, no tiene análogo aritmético y suele costar más, pero por dualidad no hace falta demostrarla de nuevo.</p>
+</div>
+<p class="back"><a href="#indice">↑ Volver al índice</a></p>
+</section>
+
+<section class="part" id="parte-4" data-part="4">
+<h2>Parte 4: Aplicación didáctica en la lógica de circuitos</h2>
+
+<div class="enunciado" id="p4-enunciado">
+<h3>Enunciado</h3>
+<blockquote>
+<p>Existen importantes analogías entre las fórmulas del cálculo lógico y las redes eléctricas, dado que las proposiciones verdaderas o falsas se corresponden con circuitos en estado de encendido o apagado.</p>
+<p><b>4.1</b> Construya un esquema visual para sus futuros estudiantes mostrando que la conjunción de dos fórmulas equivale a una red con dos contactos dispuestos en serie, mientras que la disyunción equivale a contactos conectados en paralelo.</p>
+<p><b>4.2</b> Dibuje el circuito eléctrico correspondiente a la estructura booleana original <span class="f">(A+C)B+(BD+D)B</span>.</p>
+<p><b>4.3 y 4.4</b> Demuestre paso a paso cómo la simplificación lógica de esta fórmula, mediante las leyes de absorción y distributividad del álgebra de Boole, permite diseñar un circuito equivalente mucho más simple.</p>
+</blockquote>
+<p class="material"><b>Material de lectura:</b> Cap. XVIII § 4 «Lógica de circuitos», pp. 402–408 (PDF págs. 6–9).</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Consigna</th><th scope="col">Contenido</th><th scope="col">Libro</th><th scope="col">PDF</th></tr></thead><tbody><tr><td>4.1</td><td>Contacto y conexión en serie</td><td>p. 403</td><td>pág. 6</td></tr><tr><td>4.1</td><td>Conexión en paralelo y negación</td><td>p. 404</td><td>pág. 7</td></tr><tr><td>4.1</td><td>Tabla de analogías de Shannon</td><td>pp. 404–405</td><td>pág. 7</td></tr><tr><td>4.2</td><td>Leyes del álgebra de Boole</td><td>pp. 406–407</td><td>pág. 8</td></tr><tr><td>4.2</td><td>Red del ejemplo (A + C)B + (BD + D)B</td><td>p. 407</td><td>pág. 8</td></tr><tr><td>4.3 y 4.4</td><td>Simplificación paso a paso y red resultante</td><td>p. 408</td><td>pág. 9</td></tr></tbody></table></div>
+</div>
+
+<div class="respuesta" id="p4-respuesta">
+<h3>Respuesta</h3>
+<p class="lead">La red original <span class="f">(A + C)B + (BD + D)B</span>, de 7 contactos, se reduce a <span class="f">(A + C + D)B</span>, que funciona igual con solo 4.</p>
+
+<h4>4.1 Esquema: conjunción en serie, disyunción en paralelo</h4>
+<p>Según la analogía de Shannon, un contacto representa un enunciado: cerrado (pasa corriente) = verdadero = 1; abierto (no pasa) = falso = 0.</p>
+<figure class="figure"><svg viewBox="0 0 760 326" role="img" aria-label="Conjunción es serie, disyunción es paralelo, negación es contacto inverso"><text x="24" y="66" class="name" text-anchor="start">Conjunción A ∧ B → serie</text><text x="24" y="84" class="note" text-anchor="start">Enciende solo si A y B están cerrados</text><circle cx="340" cy="70" r="4" class="term"/><line x1="340" y1="70" x2="420" y2="70" class="wire"/><circle cx="420" cy="70" r="3" class="term"/><line x1="420" y1="70" x2="456" y2="56" class="lever"/><circle cx="460" cy="70" r="3" class="term-open"/><line x1="460" y1="70" x2="540" y2="70" class="wire"/><circle cx="540" cy="70" r="3" class="term"/><line x1="540" y1="70" x2="576" y2="56" class="lever"/><circle cx="580" cy="70" r="3" class="term-open"/><line x1="580" y1="70" x2="688" y2="70" class="wire"/><circle cx="700" cy="70" r="12" class="lamp"/><line x1="692" y1="62" x2="708" y2="78" class="wire"/><line x1="692" y1="78" x2="708" y2="62" class="wire"/><text x="440" y="48" class="lbl" text-anchor="middle">A</text><text x="560" y="48" class="lbl" text-anchor="middle">B</text><text x="340" y="94" class="note" text-anchor="middle">entrada</text><text x="700" y="102" class="note" text-anchor="middle">lámpara</text><line x1="24" y1="120" x2="736" y2="120" class="rule"/><text x="24" y="181" class="name" text-anchor="start">Disyunción A ∨ B → paralelo</text><text x="24" y="199" class="note" text-anchor="start">Enciende si al menos uno está cerrado</text><circle cx="340" cy="185" r="4" class="term"/><line x1="340" y1="185" x2="400" y2="185" class="wire"/><line x1="400" y1="160" x2="400" y2="210" class="wire"/><line x1="400" y1="160" x2="460" y2="160" class="wire"/><circle cx="460" cy="160" r="3" class="term"/><line x1="460" y1="160" x2="496" y2="146" class="lever"/><circle cx="500" cy="160" r="3" class="term-open"/><line x1="500" y1="160" x2="560" y2="160" class="wire"/><line x1="400" y1="210" x2="460" y2="210" class="wire"/><circle cx="460" cy="210" r="3" class="term"/><line x1="460" y1="210" x2="496" y2="196" class="lever"/><circle cx="500" cy="210" r="3" class="term-open"/><line x1="500" y1="210" x2="560" y2="210" class="wire"/><line x1="560" y1="160" x2="560" y2="210" class="wire"/><line x1="560" y1="185" x2="688" y2="185" class="wire"/><circle cx="700" cy="185" r="12" class="lamp"/><line x1="692" y1="177" x2="708" y2="193" class="wire"/><line x1="692" y1="193" x2="708" y2="177" class="wire"/><text x="480" y="138" class="lbl" text-anchor="middle">A</text><text x="480" y="188" class="lbl" text-anchor="middle">B</text><line x1="24" y1="245" x2="736" y2="245" class="rule"/><text x="24" y="286" class="name" text-anchor="start">Negación ¬A → contacto inverso</text><text x="24" y="304" class="note" text-anchor="start">Cerrado cuando A está abierto, y al revés</text><circle cx="340" cy="290" r="4" class="term"/><line x1="340" y1="290" x2="420" y2="290" class="wire"/><circle cx="420" cy="290" r="3" class="term"/><line x1="420" y1="290" x2="456" y2="276" class="lever"/><circle cx="460" cy="290" r="3" class="term-open"/><line x1="460" y1="290" x2="688" y2="290" class="wire"/><circle cx="700" cy="290" r="12" class="lamp"/><line x1="692" y1="282" x2="708" y2="298" class="wire"/><line x1="692" y1="298" x2="708" y2="282" class="wire"/><text x="440" y="268" class="lbl" text-anchor="middle">¬A</text></svg></figure>
+<p>En notación booleana: <span class="f">A·B</span> (o AB) = <span class="f">A ∧ B</span>, conexión en serie; <span class="f">A + B</span> = <span class="f">A ∨ B</span>, conexión en paralelo; <span class="f">Ā</span> = <span class="f">¬A</span>, contacto inverso.</p>
+
+<h4>4.2 Circuito original</h4>
+<p>La fórmula tiene dos ramas unidas por + (paralelo). La rama 1, <span class="f">(A + C)B</span>, es un paralelo de A y C en serie con B. La rama 2, <span class="f">(BD + D)B</span>, es un paralelo entre «B en serie con D» y «D», todo en serie con B.</p>
+<figure class="figure"><svg viewBox="0 0 760 292" role="img" aria-label="Circuito original (A + C)B + (BD + D)B con 7 contactos"><rect x="144" y="24" width="428" height="116" rx="8" class="band"/><rect x="144" y="152" width="428" height="116" rx="8" class="band"/><circle cx="40" cy="157" r="4" class="term"/><line x1="40" y1="157" x2="100" y2="157" class="wire"/><line x1="100" y1="92" x2="100" y2="222" class="wire"/><line x1="580" y1="92" x2="580" y2="222" class="wire"/><line x1="580" y1="157" x2="648" y2="157" class="wire"/><circle cx="660" cy="157" r="12" class="lamp"/><line x1="652" y1="149" x2="668" y2="165" class="wire"/><line x1="652" y1="165" x2="668" y2="149" class="wire"/><text x="40" y="181" class="note" text-anchor="middle">entrada</text><text x="660" y="189" class="note" text-anchor="middle">lámpara</text><line x1="100" y1="92" x2="160" y2="92" class="wire"/><line x1="160" y1="62" x2="160" y2="122" class="wire"/><line x1="160" y1="62" x2="250" y2="62" class="wire"/><circle cx="250" cy="62" r="3" class="term"/><line x1="250" y1="62" x2="286" y2="48" class="lever"/><circle cx="290" cy="62" r="3" class="term-open"/><line x1="290" y1="62" x2="380" y2="62" class="wire"/><line x1="160" y1="122" x2="250" y2="122" class="wire"/><circle cx="250" cy="122" r="3" class="term"/><line x1="250" y1="122" x2="286" y2="108" class="lever"/><circle cx="290" cy="122" r="3" class="term-open"/><line x1="290" y1="122" x2="380" y2="122" class="wire"/><line x1="380" y1="62" x2="380" y2="122" class="wire"/><line x1="380" y1="92" x2="460" y2="92" class="wire"/><circle cx="460" cy="92" r="3" class="term"/><line x1="460" y1="92" x2="496" y2="78" class="lever"/><circle cx="500" cy="92" r="3" class="term-open"/><line x1="500" y1="92" x2="580" y2="92" class="wire"/><text x="564" y="42" class="branch" text-anchor="end">rama 1: (A + C)B</text><text x="270" y="40" class="lbl" text-anchor="middle">A</text><text x="270" y="100" class="lbl" text-anchor="middle">C</text><text x="480" y="70" class="lbl" text-anchor="middle">B</text><line x1="100" y1="222" x2="160" y2="222" class="wire"/><line x1="160" y1="192" x2="160" y2="252" class="wire"/><line x1="160" y1="192" x2="190" y2="192" class="wire"/><circle cx="190" cy="192" r="3" class="term"/><line x1="190" y1="192" x2="226" y2="178" class="lever"/><circle cx="230" cy="192" r="3" class="term-open"/><line x1="230" y1="192" x2="300" y2="192" class="wire"/><circle cx="300" cy="192" r="3" class="term"/><line x1="300" y1="192" x2="336" y2="178" class="lever"/><circle cx="340" cy="192" r="3" class="term-open"/><line x1="340" y1="192" x2="380" y2="192" class="wire"/><line x1="160" y1="252" x2="250" y2="252" class="wire"/><circle cx="250" cy="252" r="3" class="term"/><line x1="250" y1="252" x2="286" y2="238" class="lever"/><circle cx="290" cy="252" r="3" class="term-open"/><line x1="290" y1="252" x2="380" y2="252" class="wire"/><line x1="380" y1="192" x2="380" y2="252" class="wire"/><line x1="380" y1="222" x2="460" y2="222" class="wire"/><circle cx="460" cy="222" r="3" class="term"/><line x1="460" y1="222" x2="496" y2="208" class="lever"/><circle cx="500" cy="222" r="3" class="term-open"/><line x1="500" y1="222" x2="580" y2="222" class="wire"/><text x="564" y="170" class="branch" text-anchor="end">rama 2: (BD + D)B</text><text x="210" y="170" class="lbl" text-anchor="middle">B</text><text x="320" y="170" class="lbl" text-anchor="middle">D</text><text x="270" y="230" class="lbl" text-anchor="middle">D</text><text x="480" y="200" class="lbl" text-anchor="middle">B</text></svg></figure>
+
+<h4>4.3 Simplificación paso a paso</h4>
+<div class="table-wrap"><table><thead><tr><th scope="col">Nº</th><th scope="col">Fórmula</th><th scope="col">Ley aplicada (numeración del capítulo)</th></tr></thead><tbody><tr><td>0</td><td class="f">(A + C)B + (BD + D)B</td><td>Fórmula original</td></tr><tr><td>1</td><td class="f">(A + C)B + DB</td><td>Absorción 9b en el segundo componente: D + DB = D (antes, conmutativa: BD = DB)</td></tr><tr><td>2</td><td class="f">B(A + C) + BD</td><td>Conmutativa 5a</td></tr><tr><td>3</td><td class="f">B((A + C) + D)</td><td>Distributiva 7a leída de derecha a izquierda: B se saca como factor común</td></tr><tr><td>4</td><td class="f">(A + C + D)B</td><td>Asociativa 6b y conmutativa 5a</td></tr></tbody></table></div>
+<p>El libro llega al mismo resultado por otra vía: distribuye + con la ley 7b y obtiene <span class="f">((A + C) + DB)(B + DB)</span>; luego <span class="f">(A + C + D)(A + C + B)B</span>, y absorbe dos veces (<span class="f">B + DB = B</span> por 9b; <span class="f">(A + C + B)B = B</span> por 9a).</p>
+<p><b>Comprobación:</b> si B = 0, ambas fórmulas valen 0. Si B = 1, la original queda <span class="f">(A + C) + (D + D) = A + C + D</span>, igual que la simplificada.</p>
+
+<h4>4.4 Circuito simplificado</h4>
+<p>El circuito equivalente es un paralelo de A, C y D en serie con un solo B.</p>
+<figure class="figure"><svg viewBox="0 0 760 178" role="img" aria-label="Circuito simplificado (A + C + D)B con 4 contactos"><circle cx="40" cy="100" r="4" class="term"/><line x1="40" y1="100" x2="140" y2="100" class="wire"/><line x1="140" y1="50" x2="140" y2="150" class="wire"/><line x1="140" y1="50" x2="230" y2="50" class="wire"/><circle cx="230" cy="50" r="3" class="term"/><line x1="230" y1="50" x2="266" y2="36" class="lever"/><circle cx="270" cy="50" r="3" class="term-open"/><line x1="270" y1="50" x2="360" y2="50" class="wire"/><line x1="140" y1="100" x2="230" y2="100" class="wire"/><circle cx="230" cy="100" r="3" class="term"/><line x1="230" y1="100" x2="266" y2="86" class="lever"/><circle cx="270" cy="100" r="3" class="term-open"/><line x1="270" y1="100" x2="360" y2="100" class="wire"/><line x1="140" y1="150" x2="230" y2="150" class="wire"/><circle cx="230" cy="150" r="3" class="term"/><line x1="230" y1="150" x2="266" y2="136" class="lever"/><circle cx="270" cy="150" r="3" class="term-open"/><line x1="270" y1="150" x2="360" y2="150" class="wire"/><line x1="360" y1="50" x2="360" y2="150" class="wire"/><line x1="360" y1="100" x2="440" y2="100" class="wire"/><circle cx="440" cy="100" r="3" class="term"/><line x1="440" y1="100" x2="476" y2="86" class="lever"/><circle cx="480" cy="100" r="3" class="term-open"/><line x1="480" y1="100" x2="600" y2="100" class="wire"/><circle cx="612" cy="100" r="12" class="lamp"/><line x1="604" y1="92" x2="620" y2="108" class="wire"/><line x1="604" y1="108" x2="620" y2="92" class="wire"/><text x="250" y="28" class="lbl" text-anchor="middle">A</text><text x="250" y="78" class="lbl" text-anchor="middle">C</text><text x="250" y="128" class="lbl" text-anchor="middle">D</text><text x="460" y="78" class="lbl" text-anchor="middle">B</text><text x="40" y="124" class="note" text-anchor="middle">entrada</text><text x="612" y="132" class="note" text-anchor="middle">lámpara</text></svg></figure>
+<p>Ahorro: de 7 contactos a 4. B aparecía tres veces y queda una; D aparecía dos veces y queda una. Esta es la utilidad práctica del álgebra de Boole: manipular la fórmula es más barato que manipular la red, y la fórmula más simple da una red más económica con el mismo comportamiento.</p>
+</div>
+<p class="back"><a href="#indice">↑ Volver al índice</a></p>
+</section>
+
+</main>
+<script>
+(function(){
+  function abrir(){document.body.classList.remove('bloqueado');window.dispatchEvent(new Event('scroll'));}
+  try{if(sessionStorage.getItem('pb_ok')==='1')abrir();}catch(e){}
+  document.getElementById('form-clave').addEventListener('submit',function(e){
+    e.preventDefault();
+    if(document.getElementById('pw').value==='milu'){
+      try{sessionStorage.setItem('pb_ok','1');}catch(x){}
+      abrir();
+    }else document.getElementById('pw-error').textContent='Contraseña incorrecta';
+  });
+})();
+(function(){
+  var items=[].slice.call(document.querySelectorAll('.nav-item'));
+  function closeAll(except){items.forEach(function(it){if(it!==except){it.classList.remove('open');it.querySelector('.nav-btn').setAttribute('aria-expanded','false');}});}
+  items.forEach(function(it){
+    var b=it.querySelector('.nav-btn');
+    b.addEventListener('click',function(e){e.stopPropagation();var o=!it.classList.contains('open');closeAll(it);it.classList.toggle('open',o);b.setAttribute('aria-expanded',o?'true':'false');});
+    it.querySelectorAll('.dropdown a').forEach(function(a){a.addEventListener('click',function(){closeAll();b.blur();});});
+  });
+  document.addEventListener('click',function(){closeAll();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeAll();closeMobile();}});
+
+  var mb=document.querySelector('.menu-btn'),mp=document.querySelector('.mobile-panel');
+  function closeMobile(){mp.classList.remove('open');mb.setAttribute('aria-expanded','false');}
+  mb.addEventListener('click',function(e){e.stopPropagation();var o=!mp.classList.contains('open');mp.classList.toggle('open',o);mb.setAttribute('aria-expanded',o?'true':'false');});
+  mp.querySelectorAll('a').forEach(function(a){a.addEventListener('click',closeMobile);});
+
+  var idxLink=document.querySelector('.nav-list>li>a[href="#indice"]');
+  var targets=[document.getElementById('indice')].concat([].slice.call(document.querySelectorAll('section.part')));
+  function mark(){
+    var y=window.scrollY+document.querySelector('.topnav').offsetHeight+40,cur=null;
+    targets.forEach(function(s){if(s.offsetTop<=y)cur=s;});
+    items.forEach(function(it){it.classList.toggle('current',!!cur&&cur.dataset.part===it.dataset.part);});
+    if(idxLink)idxLink.classList.toggle('current',!!cur&&cur.id==='indice');
+  }
+  window.addEventListener('scroll',mark,{passive:true});mark();
+})();
+</script>
+</body>
+</html>
